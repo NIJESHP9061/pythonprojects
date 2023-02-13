@@ -1,13 +1,25 @@
 from django.shortcuts import render,redirect
 # Create your views here.
-from django.views.generic import CreateView,FormView,TemplateView,ListView
-from .forms import LoginForm,UserRegistrationForm,PostForm
+from django.views.generic import CreateView,FormView,TemplateView,ListView,UpdateView
+from .forms import LoginForm,UserRegistrationForm,PostForm,ProfileForm
 from django.urls import reverse_lazy
 from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
-from api.models import Posts,Comments
+from api.models import Posts,Comments,Userprofile
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
+from django.contrib.auth.models import User
+from api.models import Friends
+
+def signin_required(fn):
+    def wrapper(request,*args,**kw):
+        if not request.user.is_authenticated:
+            messages.error(request,"invalid session")
+            return redirect("signin")
+        else:
+            return fn(request,*args,**kw)
+    return wrapper
+decs=[signin_required,never_cache]
 
 class SignUpView(CreateView):
     template_name="register.html"
@@ -29,7 +41,7 @@ class SignInView(FormView):
             else:
                 return render(request,self.template_name,{"form":form})
 
-
+@method_decorator(decs,name="dispatch")
 class IndexView(CreateView,ListView):
     template_name="index.html"
     form_class=PostForm
@@ -43,7 +55,7 @@ class IndexView(CreateView,ListView):
         return super().form_valid(form)
     def get_queryset(self):
         return Posts.objects.all()
-
+decs
 def add_comment(request,*args,**kw):
         id=kw.get("id")
         pst=Posts.objects.get(id=id)
@@ -53,7 +65,7 @@ def add_comment(request,*args,**kw):
         messages.success(request,"your answer posted successfully")
         return redirect("index")
 
-
+@signin_required
 def like_post_view(request,*args,**kwargs):
     id=kwargs.get("id")
     pst=Posts.objects.get(id=id)
@@ -66,3 +78,71 @@ def like_post_view(request,*args,**kwargs):
 def signout_view(request,*args,**kw):
     logout(request)
     return redirect("signin")
+
+class ProfileView(ListView):
+    template_name="profile.html"
+    model=Posts
+    context_object_name="posts"
+
+    def get_queryset(self):
+        return Posts.objects.filter(user=self.request.user).order_by("-created_date")
+
+class ListPeopleView(ListView):
+    template_name="list_people.html"
+    model = User
+    context_object_name = 'people'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["followings"] = Friends.objects.filter(follower=self.request.user)
+        context["posts"] = Posts.objects.all().order_by('-created_date')
+        return context
+    
+
+    def get_queryset(self):
+        return User.objects.exclude(username=self.request.user)
+
+
+
+
+def add_follower(request, *args, **kwargs):
+    id = kwargs.get('id')
+    usr = User.objects.get(id=id)
+    if not Friends.objects.filter(user=usr, follower=request.user):
+        Friends.objects.create(user=usr, follower=request.user)
+    else:
+        Friends.objects.get(user=usr, follower=request.user).delete()
+    return redirect("people")
+
+decs
+def comment_delete(request,*args,**kw):
+    id=kw.get("id")
+    Comments.objects.get(id=id).delete()
+    return redirect("index")
+
+@method_decorator(decs,name="dispatch")
+class EditProfile(UpdateView):
+    template_name="profile.html"
+    form_class=ProfileForm
+    model=Userprofile
+    pk_url_kwargs="id"
+    success_url=reverse_lazy("profile")
+    
+@method_decorator(decs,name="dispatch")
+class AddProfile(CreateView):
+    template_name="userprofile.html"
+    form_class=ProfileForm
+    success_url=reverse_lazy("index")
+    
+    def post(self,request,*args,**kwargs):
+        form=ProfileForm(data=request.POST,files=request.FILES)
+        if form.is_valid():
+            profile=form.save(commit=False)
+            profile.user=request.user
+            profile.save()
+            return redirect("index")
+        else:
+            return render(request,"userprofile.html",{"form":form})
+@method_decorator(decs,name="dispatch")
+class ViewMyProfile(TemplateView):
+    template_name="userprofile.html"

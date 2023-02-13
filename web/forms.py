@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from api.models import Posts
+from api.models import Posts,Userprofile
 
 class PostForm(forms.ModelForm):
     class Meta:
@@ -21,6 +21,17 @@ class UserRegistrationForm(UserCreationForm):
 class LoginForm(forms.Form):
     username=forms.CharField()
     password=forms.CharField()
+
+class ProfileForm(forms.ModelForm):
+
+    class Meta:
+        model=Userprofile
+        fields=["user"]
+
+        widgets={
+            "dob":forms.DateInput(attrs={"type":"date","class":"form-control"})
+        }
+
 
 
 

@@ -30,3 +30,15 @@ class Comments(models.Model):
 
     def _str_(self):
         return self.comment
+
+
+class Userprofile(models.Model): 
+    user=models.OneToOneField(User,on_delete=models.CASCADE,) 
+    proimage=models.ImageField(upload_to="images",null=True) 
+    timelinepic=models.ImageField(upload_to="timelinepic",null=True) 
+    followings=models.ManyToManyField(User,related_name="following")
+
+class Friends(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user')
+    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name='follower')
+    date = models.DateTimeField(auto_now_add=True)

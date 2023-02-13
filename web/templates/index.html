@@ -1,16 +1,31 @@
 {%extends 'base.html'%}
 {%block body_block%}
-
-
+{% comment %} profile {% endcomment %}
+    
 <div class="row">
-    <div class="col-3"></div>
-    <div class="col-5">
+    <div class="col-3 text-center">
+
+        <div class="card mt-5 ms-0 border-100 shadow rounded-pill" style="width: 90%;">
+            <img src="{{request.user.profile.proimage.url}}"width="70%" class="card-img-top p-2 rounded-circle" alt="...">
+            <div class="card-body text-center">
+                <p class="card-text" style="margin: 0;"><strong>{{request.user}}</strong></p>
+                <span><small class="">{{request.user.first_name}} </small></span>
+                <span><small class="">{{request.user.last_name}} </small></span>
+                <br>
+                <a href="{% url 'profile' %}" class="btn btn-outline-warning btn-sm mt-2"><small>View Profile</small></a>
+            </div> 
+        </div>
+    </div>
+
+{% comment %} main div {% endcomment %}
+    <div class="col-6">
         <div class="card mt-3">
             <div class="card-body">
                 <form action="" method="post" enctype="multipart/form-data">
                     {%csrf_token%}
                     {{form.as_p}}
-                    <input type="submit" class="btn btn-outline-primary form-control" value="submit">
+                    <div class="text-center">
+                    <input type="submit" class="btn btn-outline-primary " value="submit"></div>
                 </form>
             </div>
         </div>
@@ -18,24 +33,24 @@
         {%for p in posts%}
         <div class="card mt-3">
             <div class="card-body">
-                <p><small>@{{p.user}}</small></p>
-                <small>{{p.created_date}}</small>
+                <p><small><i class="fa-solid fa-user"></i>{{p.user}}</small></p>
+                <small><i class="fa-regular fa-calendar-days"></i>{{p.created_date}}</small>
                 <img src="{{p.image.url}}" alt="" width="100%">
                 <p>{{p.title}}</p>
-                <a href="{% url 'add-like' p.id %}" class="btn btn-outline-primary">{{p.likes}} Like</a>
-                <button class="btn btn-outline-primary">comment</button>
+                <a href="{% url 'add-like' p.id %}" class="btn btn-outline-primary">{{p.likes}}   <i class="fa-solid fa-thumbs-up"></i> </a>
+                {% comment %} <button class="btn btn-outline-primary">comment</button> {% endcomment %}
                 <hr>
                 <form action="{%url 'add-comment' p.id%}" method="post">
                     {%csrf_token%}
                     <input type="text" class="form-control" name="comment" required >
-                    <button type="submit" class="btn btn-outline-primary btn-sm mt-1">Add Comment</button>
+                    <button type="submit" class="btn btn-outline-primary btn-sm mt-2"><i class="fa-solid fa-comments"></i>   ADD COMMENT</button>
                 </form>
                 <div>
                     {%for comment in p.posts_comments%}
                     <div class="card-body bg-light mt-2">
-                        <p style="display: inline;"><small>@{{comment.user}}</small></p>
-                        <small>{{comment.created_date}}</small>
-                        <p>{{comment.comment}}</p>
+                        <p style="display: inline;"><small><i class="fa-solid fa-user"></i>  {{comment.user}}</small></p><br>
+                        <small><i class="fa-regular fa-calendar-days"></i>  {{comment.created_date}}</small>
+                        <p><i class="fa-sharp fa-solid fa-comment"></i>  {{comment.comment}}</p>
                     </div>
                     {%endfor%}
                 </div>
@@ -43,9 +58,57 @@
         </div>
         {%endfor%}
     </div>
-    <div class="col-4"></div>
-</div>
 
+    <div class="col-3">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+            integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD"
+            crossorigin="anonymous" />
+
+        <style>
+            .parent {
+                display: grid;
+                grid-gap: 5px;
+                grid-column-gap: 0px;
+                grid-template-columns: 1fr 1fr 1fr 1fr;
+                grid-row-gap: 5px;
+                grid-column-gap: 5px;
+                padding: 1em;
+            }
+        </style>
+
+
+        <div class="text-center">
+
+            <div class="card mt-3">
+                <h5 class="card-header">FOLLOWERS</h5>
+                <div class="card-body">
+                  <a href="{% url 'people' %}" class="btn btn-primary">FRIENDS</a>
+                </div>
+              </div>
+
+
+            {% comment %} <h5 class="m-3">Following</h5>
+            <div class="text-center">
+            <button type="submit" class="btn btn-outline-primary btn-sm mt-2"><i class="fa-solid fa-user"></i>FRIENDS</button></div> {% endcomment %}
+
+            {% comment %} <div class="card parent border-0 shadow-sm" style="width: 90%;">
+                {% for f in followings %}
+                <div class="card child rounded-5 border-0 shadow-sm" style="width: 100%;">
+                    <div class="card-body text-center">
+                        <img src="/images/contact.png"
+                            class="rounded-circle" width="100%" alt=""></image>
+                        <small style="font-size: 0.8em;">{{f.list_people}}</small>
+                    </div>
+                </div>
+                {% endfor %} {% endcomment %}
+            </div>
+
+        
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+    crossorigin="anonymous"></script>
 
 
 <!-- <form action="" method="post" enctype="multipart/form-data">
